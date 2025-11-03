@@ -21,24 +21,24 @@ DELETE /api/todoitems/{id}      - Delete item by ID
 
 ## Getting Started
 
-# 1. Clone the repository:
-git clone https://github.com/abdullokhonz/controller-based_TodoApi.git
-cd controller-based_TodoApi
+1. Clone the repository:
+   - git clone https://github.com/abdullokhonz/controller-based_TodoApi.git
+   - cd controller-based_TodoApi
 
 2. Restore dependencies:
-   dotnet restore
+   - dotnet restore
 
 3. (Optional) Add required packages:
-   dotnet add package Microsoft.EntityFrameworkCore.InMemory
-   dotnet add package Microsoft.AspNetCore.OpenApi
-   dotnet add package Swashbuckle.AspNetCore
+   - dotnet add package Microsoft.EntityFrameworkCore.InMemory
+   - dotnet add package Microsoft.AspNetCore.OpenApi
+   - dotnet add package Swashbuckle.AspNetCore
 
 4. Build and run:
-   dotnet build
-   dotnet run
+   - dotnet build
+   - dotnet run
 
 5. Open Swagger UI in your browser:
-   https://localhost:5001/swagger
+   - https://localhost:5001/swagger
 
 ---
 

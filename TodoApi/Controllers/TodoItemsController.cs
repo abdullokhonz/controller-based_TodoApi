@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
+using TodoApi.Services;
 
 namespace TodoApi.Controllers;
 
@@ -8,119 +8,70 @@ namespace TodoApi.Controllers;
 [ApiController]
 public class TodoItemsController : ControllerBase
 {
-    private readonly TodoContext _context;
+    private readonly ITodoService _service;
 
-    public TodoItemsController(TodoContext context)
+    public TodoItemsController(ITodoService service)
     {
-        _context = context;
+        _service = service;
     }
 
-    // GET: api/TodoItems
+    #region GET: api/TodoItems
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TodoItemDTO>>> GetTodoItems()
     {
-        return await _context.TodoItems
-            .Select(x => ItemToDTO(x))
-            .ToListAsync();
+        var items = await _service.GetAllAsync();
+        return Ok(items);
     }
+    #endregion
 
-    // GET: api/TodoItems/5
-    // <snippet_GetByID>
+    #region GET: api/TodoItems/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoItemDTO>> GetTodoItem(long id)
     {
-        var todoItem = await _context.TodoItems.FindAsync(id);
-
-        if (todoItem == null)
+        var item = await _service.GetByIdAsync(id);
+        if (item == null)
         {
             return NotFound();
         }
-
-        return ItemToDTO(todoItem);
+        return Ok(item);
     }
-    // </snippet_GetByID>
+    #endregion
 
-    // PUT: api/TodoItems/5
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    // <snippet_Update>
+    #region PUT: api/TodoItems/{id}
     [HttpPut("{id}")]
     public async Task<IActionResult> PutTodoItem(long id, TodoItemDTO todoDTO)
     {
-        if (id != todoDTO.Id)
-        {
-            return BadRequest();
-        }
-
-        var todoItem = await _context.TodoItems.FindAsync(id);
-        if (todoItem == null)
+        var updated = await _service.UpdateAsync(id, todoDTO);
+        if (!updated)
         {
             return NotFound();
         }
-
-        todoItem.Name = todoDTO.Name;
-        todoItem.IsComplete = todoDTO.IsComplete;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException) when (!TodoItemExists(id))
-        {
-            return NotFound();
-        }
-
         return NoContent();
     }
-    // </snippet_Update>
+    #endregion
 
-    // POST: api/TodoItems
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    // <snippet_Create>
+    #region POST: api/TodoItems
     [HttpPost]
     public async Task<ActionResult<TodoItemDTO>> PostTodoItem(TodoItemDTO todoDTO)
     {
-        var todoItem = new TodoItem
-        {
-            IsComplete = todoDTO.IsComplete,
-            Name = todoDTO.Name
-        };
-
-        _context.TodoItems.Add(todoItem);
-        await _context.SaveChangesAsync();
-
+        var created = await _service.CreateAsync(todoDTO);
         return CreatedAtAction(
             nameof(GetTodoItem),
-            new { id = todoItem.Id },
-            ItemToDTO(todoItem));
+            new { id = created.Id },
+            created);
     }
-    // </snippet_Create>
+    #endregion
 
-    // DELETE: api/TodoItems/5
+    #region DELETE: api/TodoItems/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTodoItem(long id)
     {
-        var todoItem = await _context.TodoItems.FindAsync(id);
-        if (todoItem == null)
+        var deleted = await _service.DeleteAsync(id);
+        if (!deleted)
         {
             return NotFound();
         }
-
-        _context.TodoItems.Remove(todoItem);
-        await _context.SaveChangesAsync();
-
         return NoContent();
     }
-
-    private bool TodoItemExists(long id)
-    {
-        return _context.TodoItems.Any(e => e.Id == id);
-    }
-
-    private static TodoItemDTO ItemToDTO(TodoItem todoItem) =>
-       new TodoItemDTO
-       {
-           Id = todoItem.Id,
-           Name = todoItem.Name,
-           IsComplete = todoItem.IsComplete
-       };
+    #endregion
 }
